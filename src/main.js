@@ -16,35 +16,24 @@ const INITIAL_SESSION = {
 }
 bot.use(session())
 
-bot.command('start', async (ctx) =>{
-    ctx.session = INITIAL_SESSION
-    await ctx.reply('Waiting for your audio or text message')
-})
-
 bot.start(async(ctx) =>{
-    const userId = ctx.message.from.id;
-    userStates[userId] = { hasStarted: false };
+    userStates[userId] = { hasStarted: true };
     if(userStates[userId] && userStates[userId.hasStarted]){
         await ctx.reply('You have already started! Feel free to use the bot.');
-    } else {
-        await ctx.reply(
-
-        )
-    }
+    } 
 });
-
-bot.hears('start', async(ctx)=>{
-    const userId = ctx.message.from.id;
-    userStates[userId] = {hasStarted: true};
-    await ctx.reply('How can I assist you today? (Audio or text message)')
-})
-
 
 bot.on(message('voice'), async(ctx) => {
     ctx.session ??= INITIAL_SESSION
     const userId = String(ctx.message.from.id)
     if (!userStates[userId] || !userStates[userId].hasStarted) {
         await ctx.reply('Please press the "Start" button first to activate the bot.');
+        await ctx.reply(
+            'Start the bot: ⬇️',
+            Markup.inlineKeyboard([
+                Markup.button.callback('🤖 START', 'start')
+            ])
+        )
         return;
     }
     try{
@@ -81,6 +70,12 @@ bot.on(message('text'), async(ctx) => {
     const userId = String(ctx.message.from.id)
     if (!userStates[userId] || !userStates[userId].hasStarted) {
         await ctx.reply('Please press the "Start" button first to activate the bot.');
+        await ctx.reply(
+            'Start the bot: ⬇️',
+            Markup.inlineKeyboard([
+                Markup.button.callback('🤖 START', 'start')
+            ])
+        )
         return;
     }
     try{
@@ -107,6 +102,16 @@ bot.action('new_conversation', async(ctx)=>{
     ctx.session = INITIAL_SESSION
     await ctx.reply($`You have started a new conversation! Bot's memory was cleared`)
 })
+
+bot.action('start', async(ctx)=>{
+    console.log(ctx.callbackQuery.from)
+    console.log(`User's ID - ${ctx.callbackQuery.from.id}`)
+    const userId = ctx.callbackQuery.from.id
+    userStates[userId] = {hasStarted: true}
+    ctx.session ??= INITIAL_SESSION
+    await ctx.reply('How can I assist you today? (Audio or text message)')
+})
+
 
 bot.launch()
 
